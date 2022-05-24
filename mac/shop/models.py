@@ -1,6 +1,3 @@
-from distutils.command.upload import upload
-from email.policy import default
-from wsgiref.simple_server import demo_app
 from django.db import models
 
 # Create your models here.
