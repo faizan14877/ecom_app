@@ -1,0 +1,108 @@
+{% extends 'shop/basic.html' %}
+{% block title %}Checkout{% endblock  %}
+
+{% block body %} 
+<div class="container">
+  <div class="col my-4">
+    <h2>Track Your Order</h2>
+
+    <form method='POST' action='#' id="trackerForm">{% csrf_token %}
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label for="order_id">Order Id</label>
+          <input type="text" class="form-control" id="OrderId" name='order_id' placeholder="Order Id">
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" name='email' placeholder="Email">
+        </div>
+        <button type="submit" class="btn btn-primary">Place Order</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="col my-2">
+    <h2>Order Status</h2>
+    <div class="my-4">
+      <ul class="list-group" id="items"></ul>
+    </div>
+  </div>
+
+  <div class="col my-2">
+    <h2>Order Items</h2>
+    <div class="my-4">
+      <ul class="list-group" id="citems"></ul>
+    </div>
+  </div>
+</div>
+{% endblock  %}
+<script>
+  $()
+</script>
+
+{% block js %}
+<script>
+  $('#trackerForm').submit(function(event){
+
+    $('#items').empty();
+
+    var formData= {
+      'order_id': $('input[name=order_id]').val(),
+      'email': $('input[name=email]').val(),
+      'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+    }
+
+    $.ajax({
+      type: 'POST',
+      url: '/shop/tracker',
+      data: formData,
+      encode: true
+    })
+
+    .done(function(data){
+      $('#citems').empty()
+      data = JSON.parse(data)
+      console.log('data')
+      if(data['status'] == 'success'){
+        updates = data['updates']
+        console.log(updates)
+        for(let i=0; i<data['updates'].length; i++){
+          let text = updates[i]['update_desc']
+          let time = updates[i]['timestamp']
+          str = `<li class="list-group-item d-flex justify-content-between align-items-center">
+            ${text}
+            <span class="badge badge-primary badge-pill">${time}</span>
+          </li>`
+          $('#items').append(str)
+        }
+
+        let items = JSON.parse(data['itemsJson'])
+        {% comment %} console.log(items) {% endcomment %}
+        for(item in items){
+          let qty = items[item][0]
+          let name = items[item][1]
+          {% comment %} console.log(item)
+          console.log(name, qty) {% endcomment %}
+          str = `<li class="list-group-item d-flex justify-content-between align-items-center">
+            ${name}
+            <span class="badge badge-primary badge-pill">${qty}</span>
+          </li>`
+          $('#citems').append(str)
+        }
+      }else{
+        str = `<li class="list-group-item d-flex justify-content-between align-items-center">Sorry</li>`
+        $('#items').append(str)
+        $('#citems').append(str)
+      }
+      
+    })
+
+
+
+
+
+    event.preventDefault();
+  })
+</script>
+{% endblock  %}
